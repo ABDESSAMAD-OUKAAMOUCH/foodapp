@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5dp">
+
+    <Button
+        android:id="@+id/tryAgain"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="Try Again"
+        android:textColor="@color/white"
+        android:textSize="20dp"
+        android:background="@drawable/button1"
+        android:textAllCaps="false">
+
+    </Button>
+
+</LinearLayout>

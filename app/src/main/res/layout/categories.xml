@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="50dp"
+
+    app:cardCornerRadius="5dp"
+    app:cardElevation="2dp"
+    app:cardUseCompatPadding="true"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardBackgroundColor="@color/orange">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:orientation="horizontal">
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/imageCategories"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/pizza2"
+            android:layout_marginTop="2dp"
+            android:paddingStart="5dp"
+            android:foregroundGravity="center_vertical"
+            app:civ_border_width="2dp"
+            app:civ_border_color="@color/white"/>
+        <TextView
+            android:id="@+id/nameCategories"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pizza"
+            android:paddingStart="12dp"
+            android:paddingEnd="10dp"
+            android:textSize="16dp"
+            android:textColor="@color/white"/>
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
