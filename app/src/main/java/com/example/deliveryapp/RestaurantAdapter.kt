@@ -1,37 +1,52 @@
 package com.example.deliveryapp
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Adapter
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 
-class RestaurantAdapter(var list:ArrayList<Restaurant>):RecyclerView.Adapter<RestaurantAdapter.ViewHolder>() {
-    lateinit var onItemClick:((Restaurant)->Unit)
-    class ViewHolder(itemView:View):RecyclerView.ViewHolder(itemView){
-        var image=itemView.findViewById<ImageView>(R.id.restaurantImage)
-        var name:TextView=itemView.findViewById(R.id.nameRestaurant)
-        var time:TextView=itemView.findViewById(R.id.time)
+class RestaurantAdapter(
+    private val context: Context,
+    private val restaurantList: List<Restaurant>,
+    private val listener: OnItemClickListener // 👈 نضيف listener هنا
+) : RecyclerView.Adapter<RestaurantAdapter.RestaurantViewHolder>() {
+
+    interface OnItemClickListener {
+        fun onItemClick(restaurant: Restaurant)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        var view=LayoutInflater.from(parent.context).inflate(R.layout.restaurants,parent,false)
-        return ViewHolder(view)
-    }
+    inner class RestaurantViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val restaurantName: TextView = itemView.findViewById(R.id.nameRestaurant)
+        val restaurantUrl: TextView = itemView.findViewById(R.id.time)
+        val restaurantImage: ImageView = itemView.findViewById(R.id.restaurantImage)
 
-    override fun getItemCount(): Int {
-        return list.size
-    }
+        fun bind(restaurant: Restaurant) {
+            restaurantName.text = restaurant.restaurantName
+            restaurantUrl.text = restaurant.restaurantUrl
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        var restaurantInfo=list[position]
-        holder.image.setImageResource(restaurantInfo.image)
-        holder.name.text=restaurantInfo.name
-        holder.time.text=restaurantInfo.time
-        holder.itemView.setOnClickListener {
-            onItemClick.invoke(restaurantInfo)
+            Glide.with(context)
+                .load(restaurant.imageBase64)
+                .into(restaurantImage)
+
+            itemView.setOnClickListener {
+                listener.onItemClick(restaurant)
+            }
         }
     }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RestaurantViewHolder {
+        val itemView = LayoutInflater.from(context).inflate(R.layout.restaurants, parent, false)
+        return RestaurantViewHolder(itemView)
+    }
+
+    override fun onBindViewHolder(holder: RestaurantViewHolder, position: Int) {
+        val currentRestaurant = restaurantList[position]
+        holder.bind(currentRestaurant)
+    }
+
+    override fun getItemCount(): Int = restaurantList.size
 }

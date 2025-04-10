@@ -1,6 +1,7 @@
 package com.example.deliveryapp
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -11,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.denzcoskun.imageslider.models.SlideModel
 import com.example.deliveryapp.databinding.ActivityRestaurantBinding
 
@@ -26,11 +28,19 @@ class RestaurantActivity : AppCompatActivity() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        var restaurantInfo=intent.getParcelableExtra<Restaurant>("restaurant")
-        if (restaurantInfo!=null){
+        var restaurantName=intent.getStringExtra("restaurantName")
+        var imageBase64=intent.getStringExtra("imageUrl")
+        var restaurantUrl=intent.getStringExtra("restaurantUrl")
+//image
+        Glide.with(this).load(imageBase64).into(binding.imageView12)
+        binding.nameRestaurant.text=restaurantName
 
+//floatingactionbutton
+        binding.floatingactionbutton.setOnClickListener {
+            val url = restaurantUrl // استبدل بالرابط المطلوب
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(intent)
         }
-
         binding.imageView2.setOnClickListener {
             finish()
         }

@@ -33,11 +33,12 @@
                         android:src="@drawable/location2" />
 
                     <TextView
+                        android:id="@+id/textCity"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingStart="10dp"
                         android:paddingEnd="10dp"
-                        android:text="beni mellal"
+                        android:text=""
                         android:textColor="@color/black"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -48,12 +49,13 @@
                         android:src="@drawable/chevrondown" />
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Beni-Mellal, Morocco"
-                    android:layout_marginStart="16dp"
-                    android:textSize="16sp" />
+            <TextView
+                android:id="@+id/location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text=""
+                android:textSize="16sp" />
 
             <SearchView
                 android:id="@+id/searchlocation"
