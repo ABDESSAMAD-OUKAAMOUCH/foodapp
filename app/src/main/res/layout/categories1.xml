@@ -12,17 +12,17 @@
         android:layout_height="match_parent">
 
         <ImageView
-            android:id="@+id/imageCategories1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:id="@+id/imageItem"
+            android:layout_width="140dp"
+            android:layout_height="120dp"
+            android:layout_marginTop="8dp"
             android:src="@drawable/pizza2"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/nameCategories1"
+            android:id="@+id/nameItem"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -30,7 +30,7 @@
             android:textColor="@color/black"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageCategories1" />
+            app:layout_constraintTop_toBottomOf="@+id/imageItem" />
 
         <RatingBar
             android:id="@+id/ratingBar"
@@ -45,7 +45,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.16"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/nameCategories1" />
+            app:layout_constraintTop_toBottomOf="@+id/nameItem" />
 
         <TextView
             android:id="@+id/price"

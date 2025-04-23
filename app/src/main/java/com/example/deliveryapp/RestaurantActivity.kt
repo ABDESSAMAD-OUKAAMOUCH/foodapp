@@ -1,5 +1,6 @@
 package com.example.deliveryapp
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -7,83 +8,96 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.denzcoskun.imageslider.models.SlideModel
 import com.example.deliveryapp.databinding.ActivityRestaurantBinding
+import com.google.firebase.firestore.FirebaseFirestore
 
 class RestaurantActivity : AppCompatActivity() {
-    var categoriesList=ArrayList<Categories>()
-    var categoriesList1=ArrayList<Categories1>()
+    private lateinit var categoryAdapter: CategoryAdapter
+    private lateinit var itemAdapter: ItemAdapter
+    lateinit var restaurantId:String
+    private lateinit var categoryRecycler: RecyclerView
+    private lateinit var itemRecycler: RecyclerView
+
+    private var allCategories: List<Category> = listOf()
     lateinit var binding: ActivityRestaurantBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding=ActivityRestaurantBinding.inflate(layoutInflater)
+        binding = ActivityRestaurantBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        var restaurantName=intent.getStringExtra("restaurantName")
-        var imageBase64=intent.getStringExtra("imageUrl")
-        var restaurantUrl=intent.getStringExtra("restaurantUrl")
+        var restaurantName = intent.getStringExtra("restaurantName")
+        var imageBase64 = intent.getStringExtra("imageUrl")
+        var restaurantUrl = intent.getStringExtra("restaurantUrl")
 //image
         Glide.with(this).load(imageBase64).into(binding.imageView12)
-        binding.nameRestaurant.text=restaurantName
+        binding.nameRestaurant.text = restaurantName
 
-//floatingactionbutton
-        binding.floatingactionbutton.setOnClickListener {
-            val url = restaurantUrl // استبدل بالرابط المطلوب
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            startActivity(intent)
-        }
-        binding.imageView2.setOnClickListener {
-            finish()
-        }
+        categoryRecycler = findViewById(R.id.recyclerView2)
+        itemRecycler = findViewById(R.id.recyclerView3)
 
-        if (categoriesList.isEmpty()){
-            categoriesList.add(Categories(R.drawable.pizza2,"Pizza"))
-            categoriesList.add(Categories(R.drawable.burger2,"Burger"))
-            categoriesList.add(Categories(R.drawable.burger2,"Burger"))
-            categoriesList.add(Categories(R.drawable.burger2,"Burger"))
-            categoriesList.add(Categories(R.drawable.burger2,"Burger"))
-        }
-        if (categoriesList1.isEmpty()){
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-            categoriesList1.add(Categories1(R.drawable.burger2,"Burger","$15"))
-        }
-        binding.recyclerView2.layoutManager= LinearLayoutManager(this, RecyclerView.HORIZONTAL,false)
-        val categoriesAdapter= CategoriesAdapter(categoriesList)
-        binding.recyclerView2.setHasFixedSize(true)
-        binding.recyclerView2.setRecycledViewPool(RecyclerView.RecycledViewPool())
-        binding.recyclerView2.adapter=categoriesAdapter
-        binding.recyclerView3.layoutManager= GridLayoutManager(this,2)
-        val categoriesAdapter1= CategoriesAdapter1(categoriesList1)
-        binding.recyclerView3.setHasFixedSize(true)
-        binding.recyclerView3.setRecycledViewPool(RecyclerView.RecycledViewPool())
-        binding.recyclerView3.adapter=categoriesAdapter1
-        categoriesAdapter1.onItemClick={
-            var intent= Intent(this, Order::class.java)
-            intent.putExtra("restaurant",it)
-            startActivity(intent)
-        }
+        // RecyclerView للفئات
+        categoryRecycler.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
+        // RecyclerView للأصناف
+        itemRecycler.layoutManager = GridLayoutManager(this, 2)
+
+        // جلب الفئات من Firebase مع الأصناف الخاصة بها
+        val restaurantId = intent.getStringExtra("restaurantId") ?: return
+        fetchCategoriesWithItems(restaurantId)
+        val sharedPrefs = getSharedPreferences("RestaurantPrefs", Context.MODE_PRIVATE)
+        sharedPrefs.edit().putString("restaurantId", restaurantId).apply()
+
+
+    }
+
+    private fun fetchCategoriesWithItems(restaurantId: String) {
+        FirebaseFirestore.getInstance()
+            .collection("restaurants")
+            .document(restaurantId)
+            .collection("categories")
+            .get()
+            .addOnSuccessListener { categoryDocs ->
+                val categories = mutableListOf<Category>()
+
+                for (doc in categoryDocs) {
+                    val category = doc.toObject(Category::class.java).copy(id = doc.id)
+                    categories.add(category)
+                }
+
+                allCategories = categories
+                categoryAdapter = CategoryAdapter(this, categories) { selectedCategory ->
+                    loadItemsForCategory(selectedCategory.id)
+                }
+                categoryRecycler.adapter = categoryAdapter
+
+                if (categories.isNotEmpty()) {
+                    loadItemsForCategory(categories[0].id) // أول فئة
+                }
+            }
+    }
+
+    private fun loadItemsForCategory(categoryId: String) {
+        val restaurantId = intent.getStringExtra("restaurantId") ?: return
+
+        FirebaseFirestore.getInstance()
+            .collection("restaurants")
+            .document(restaurantId)
+            .collection("categories")
+            .document(categoryId)
+            .collection("Items")
+            .get()
+            .addOnSuccessListener { itemDocs ->
+                val items = itemDocs.map { it.toObject(Item::class.java) }
+                itemAdapter = ItemAdapter(this, items,restaurantId,categoryId)
+                itemRecycler.adapter = itemAdapter
+            }
     }
 }

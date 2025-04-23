@@ -1,35 +1,25 @@
 package com.example.deliveryapp.fragment
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.ScrollView
 import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.denzcoskun.imageslider.models.SlideModel
-import com.example.deliveryapp.Categories
-import com.example.deliveryapp.Categories1
-import com.example.deliveryapp.CategoriesAdapter
-import com.example.deliveryapp.CategoriesAdapter1
 import com.example.deliveryapp.LocationViewModel
 import com.example.deliveryapp.Order
 import com.example.deliveryapp.R
 import com.example.deliveryapp.Restaurant
 import com.example.deliveryapp.RestaurantActivity
 import com.example.deliveryapp.RestaurantAdapter
-import com.example.deliveryapp.databinding.ActivityHomeBinding
 import com.example.deliveryapp.databinding.FragmentHomeBinding
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -39,8 +29,6 @@ class HomeFragment : Fragment() {
     var imageList=ArrayList<SlideModel>()
     private lateinit var restaurantList: MutableList<Restaurant>
     private lateinit var restaurantAdapter: RestaurantAdapter
-    var categoriesList=ArrayList<Categories>()
-    var categoriesList1=ArrayList<Categories1>()
     private val locationViewModel: LocationViewModel by activityViewModels()
     lateinit var mNavController: NavController
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,6 +70,7 @@ class HomeFragment : Fragment() {
                 intent.putExtra("restaurantName", restaurant.restaurantName)
                 intent.putExtra("imageUrl", restaurant.imageBase64)
                 intent.putExtra("restaurantUrl", restaurant.restaurantUrl)
+                intent.putExtra("restaurantId", restaurant.id) // ← أضف هذا السطر
                 startActivity(intent)
             }
         })
@@ -95,20 +84,17 @@ class HomeFragment : Fragment() {
         FirebaseFirestore.getInstance().collection("restaurants")
             .get()
             .addOnSuccessListener { documents ->
+                restaurantList.clear()
                 for (document in documents) {
                     val restaurant = document.toObject(Restaurant::class.java)
+                    restaurant.id = document.id // إضافة الـ ID
                     restaurantList.add(restaurant)
                 }
-                restaurantAdapter.notifyDataSetChanged() // تحديث الـ RecyclerView بعد إضافة البيانات
+                restaurantAdapter.notifyDataSetChanged()
             }
             .addOnFailureListener { exception ->
                 Toast.makeText(requireContext(), "Error getting restaurants: $exception", Toast.LENGTH_SHORT).show()
             }
-//        restaurantAdapter.onItemClick={
-//            var intent=Intent(requireContext(), RestaurantActivity::class.java)
-//            intent.putExtra("restaurant",it)
-//            startActivity(intent)
-//        }
 
 
         imageList.add(SlideModel(R.drawable.group1))

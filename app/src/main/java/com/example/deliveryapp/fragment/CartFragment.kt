@@ -1,33 +1,29 @@
 package com.example.deliveryapp.fragment
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.deliveryapp.DataOrder
+import com.example.deliveryapp.OrderAdapter
 import com.example.deliveryapp.R
+import com.google.firebase.firestore.FirebaseFirestore
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [CartFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class CartFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var cartAdapter: OrderAdapter
+    private val cartItems = mutableListOf<DataOrder>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+
     }
 
     override fun onCreateView(
@@ -38,23 +34,46 @@ class CartFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_cart, container, false)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment CartFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            CartFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        recyclerView = view.findViewById(R.id.recyclerView)
+        val restaurantId =
+            requireContext().getSharedPreferences("RestaurantPrefs", Context.MODE_PRIVATE)
+                .getString("restaurantId", null)
+
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        cartAdapter = restaurantId?.let { OrderAdapter(requireContext(), cartItems, it) }!!
+        recyclerView.adapter = cartAdapter
+
+        fetchCartItems()
+
+    }
+
+    private fun fetchCartItems() {
+        val restaurantId = requireContext()
+            .getSharedPreferences("RestaurantPrefs", Context.MODE_PRIVATE)
+            .getString("restaurantId", null) ?: return
+
+        FirebaseFirestore.getInstance()
+            .collection("restaurants")
+            .document(restaurantId)
+            .collection("orders")
+            .get()
+            .addOnSuccessListener { documents ->
+                cartItems.clear()
+                for (doc in documents) {
+                    val item = doc.toObject(DataOrder::class.java)
+                    item.id = doc.id  // <-- نحفظ الـ ID هنا
+                    cartItems.add(item)
                 }
+                cartAdapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "فشل تحميل الطلبات", Toast.LENGTH_SHORT).show()
             }
     }
+
 }
+
