@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.deliveryapp.databinding.ActivitySignInBinding
 import com.example.deliveryapp.databinding.ActivitySignUpBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class SignUp : AppCompatActivity() {
     lateinit var binding:ActivitySignUpBinding
@@ -38,27 +39,54 @@ class SignUp : AppCompatActivity() {
                 mProgressDialog.setMessage("Loading...")
                 mProgressDialog.setCanceledOnTouchOutside(false)
                 mProgressDialog.show()
-                mAut?.createUserWithEmailAndPassword(binding.emailAddress.text.toString(),binding.password.text.toString())?.addOnCompleteListener {
-                    if(it.isSuccessful){
-                        var user=mAut?.currentUser
-                        user?.sendEmailVerification()?.addOnCompleteListener {
-                            if(it.isSuccessful){
+                mAut?.createUserWithEmailAndPassword(
+                    binding.emailAddress.text.toString(),
+                    binding.password.text.toString()
+                )?.addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        val user = mAut?.currentUser
+                        user?.sendEmailVerification()?.addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                // ✅ إضافة المستخدم إلى Firestore
+                                val db = FirebaseFirestore.getInstance()
+                                val userId = user.uid
+                                val userData = hashMapOf(
+                                    "firstName" to binding.firstname.text.toString(),
+                                    "lastName" to binding.lastname.text.toString(),
+                                    "fullName" to "${binding.firstname.text} ${binding.lastname.text}",
+                                    "phone" to binding.phone.text.toString(),
+                                    "email" to binding.emailAddress.text.toString(),
+                                    "location" to null // حقل الموقع فارغ حالياً
+                                )
+
+                                db.collection("users")
+                                    .document(userId)
+                                    .set(userData)
+                                    .addOnSuccessListener {
+                                        mProgressDialog.dismiss()
+                                        Toast.makeText(
+                                            this,
+                                            "Account created.\nCheck your email to verify your account.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        startActivity(Intent(this, SignIn::class.java))
+                                    }
+                                    .addOnFailureListener { e ->
+                                        mProgressDialog.dismiss()
+                                        Toast.makeText(this, "Error saving user data: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    }
+
+                            } else {
                                 mProgressDialog.dismiss()
-                                Toast.makeText(this,"account created,\n check your email for verify your account",Toast.LENGTH_SHORT).show()
-                                var intent=Intent(this,SignIn::class.java)
-                                startActivity(intent)
-                            }
-                            else{
-                                mProgressDialog.dismiss()
-                                Toast.makeText(this, it.exception.toString(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, task.exception.toString(), Toast.LENGTH_SHORT).show()
                             }
                         }
-                    }
-                    else{
+                    } else {
                         mProgressDialog.dismiss()
-                        Toast.makeText(this, it.exception.toString(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, it.exception.toString(), Toast.LENGTH_SHORT).show()
                     }
                 }
+
             }
             else{
                 Toast.makeText(this, "Empty", Toast.LENGTH_SHORT).show();

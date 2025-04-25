@@ -23,6 +23,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.Executors
@@ -145,6 +147,38 @@ class Location1 : AppCompatActivity() {
                 val country = address?.countryName
                 val locationText = listOfNotNull(city, country).joinToString(", ")
 
+                // تحديث بيانات المستخدم في Firestore
+                val db = FirebaseFirestore.getInstance()
+                val user = FirebaseAuth.getInstance().currentUser
+                val locationMap = hashMapOf(
+                    "lat" to location.latitude,
+                    "lng" to location.longitude,
+                    "city" to city,
+                    "country" to country
+                )
+                val sharedPref = this.getSharedPreferences("UserLocation", Context.MODE_PRIVATE)
+                val editor = sharedPref.edit()
+
+                editor.putString("lat", location.latitude.toString())
+                editor.putString("lng", location.longitude.toString())
+                editor.putString("city", city)
+                editor.putString("country", country)
+
+                editor.apply() // أو editor.commit()
+
+
+                if (user != null) {
+                    db.collection("users")
+                        .document(user.uid)
+                        .update("location", locationMap)
+                        .addOnSuccessListener {
+                            Log.d("Firestore", "Location updated successfully")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("Firestore", "Failed to update location: ${e.message}")
+                        }
+                }
+
                 runOnUiThread {
                     navigateToHomeActivity(location, city, country)
                 }
@@ -155,6 +189,7 @@ class Location1 : AppCompatActivity() {
                 }
             }
         }
+
     }
 
     private fun navigateToHomeActivity(location: Location, city: String?, country: String?) {
@@ -213,7 +248,8 @@ class Location1 : AppCompatActivity() {
     }
 
     private fun isOnline(): Boolean {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connectivityManager.activeNetworkInfo
         return networkInfo?.isConnected == true
     }

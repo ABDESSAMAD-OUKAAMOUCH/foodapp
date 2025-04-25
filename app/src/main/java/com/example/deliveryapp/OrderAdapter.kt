@@ -14,8 +14,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 class OrderAdapter(
     private val context: android.content.Context,
     private val orderList: MutableList<DataOrder>,
-    private val restaurantId: String
-
+    private val restaurantId: String,
+    private val adminId: String // تمرير الـ adminId من الـ Activity أو Fragment
 ) : RecyclerView.Adapter<OrderAdapter.OrderViewHolder>() {
 
     class OrderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -24,7 +24,7 @@ class OrderAdapter(
         val priceTextView: TextView = view.findViewById(R.id.price)
         val paymentTypeTextView: TextView = view.findViewById(R.id.paymentTypeTextView)
         val deleteIcon: ImageView = view.findViewById(R.id.imageButton2)
-
+        val quantity: TextView = view.findViewById(R.id.number)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrderViewHolder {
@@ -36,35 +36,51 @@ class OrderAdapter(
         val order = orderList[position]
 
         holder.nameTextView.text = order.name
-        holder.priceTextView.text = "${order.price}"
+        holder.priceTextView.text = "${order.price}$"
         holder.paymentTypeTextView.text = order.paymentType
+        holder.quantity.text = "${order.quantity}"
 
-        // فك ترميز الصورة من Base64
+        // Decode Base64 image
         val imageBytes = Base64.decode(order.imageBase64, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         holder.imageView.setImageBitmap(bitmap)
 
-        //delete
         holder.deleteIcon.setOnClickListener {
             val orderId = order.id
-            FirebaseFirestore.getInstance()
-                .collection("restaurants")
-                .document(restaurantId)  // مرّر restaurantId من الخارج أو خزنه
-                .collection("orders")
-                .document(orderId)
-                .delete()
-                .addOnSuccessListener {
-                    Toast.makeText(context, "تم حذف الطلب", Toast.LENGTH_SHORT).show()
-                    orderList.removeAt(position)  // ← نحذف من القائمة
-                    notifyItemRemoved(position)   // ← نخبر المحول بالتحديث
-                    notifyItemRangeChanged(position, orderList.size) // ← لتحديث الـ index المتبقي
-                }
-                .addOnFailureListener {
-                    Toast.makeText(context, "فشل في الحذف", Toast.LENGTH_SHORT).show()
-                }
+            val userId = order.userId
+
+            if (userId != null && orderId != null && adminId != null) {
+                // حذف من مجلد المستخدم
+                FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(userId)
+                    .collection("orders")
+                    .document(orderId)
+                    .delete()
+                    .addOnSuccessListener {
+                        // بعد الحذف من مجلد المستخدم، حذف الطلب من مجلد admins
+                        FirebaseFirestore.getInstance()
+                            .collection("admins")
+                            .document(adminId)
+                            .collection("restaurants")
+                            .document(restaurantId ?: "")  // استخدم restaurantId من الطلب
+                            .collection("orders")
+                            .document(orderId)
+                            .delete()
+                            .addOnSuccessListener {
+                                Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT).show()
+                                orderList.removeAt(holder.adapterPosition)
+                                notifyItemRemoved(holder.adapterPosition)
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(context, "فشل الحذف من قسم المطعم", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(context, "فشل الحذف من قسم المستخدم", Toast.LENGTH_SHORT).show()
+                    }
+            }
         }
-
-
 
     }
 

@@ -45,10 +45,11 @@ class ItemAdapter(
             val intent = Intent(context, Order::class.java)
             intent.putExtra("ITEM_IMAGE_BASE64", item.imageBase64)
             intent.putExtra("itemName", item.itemName)  // Pass the item data (e.g., item ID) to the next page
-            intent.putExtra("price", "${item.price}$")  // Pass the item data (e.g., item ID) to the next page
+            intent.putExtra("price", "${item.price}")  // Pass the item data (e.g., item ID) to the next page
             intent.putExtra("description", item.description)
             intent.putExtra("restaurantId", restaurantId)
             intent.putExtra("categoryId", categoryId)
+            intent.putExtra("adminId", item.adminId)
             // Pass the item data (e.g., item ID) to the next page
             context.startActivity(intent)
 

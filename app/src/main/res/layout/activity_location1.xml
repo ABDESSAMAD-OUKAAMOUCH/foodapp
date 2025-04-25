@@ -60,31 +60,10 @@
         app:layout_constraintGuide_percent="0.96107054" />
 
     <Button
-        android:id="@+id/Searchlocation"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/button2"
-        android:drawableStart="@drawable/search"
-        android:gravity="center_vertical|center"
-        android:paddingStart="18dp"
-        android:paddingTop="15dp"
-        android:paddingEnd="18dp"
-        android:paddingBottom="15dp"
-        android:text="@string/Search_area_street_name"
-        android:textAllCaps="false"
-        android:textColor="@color/black"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toStartOf="@+id/guideline2"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/paymentTypeTextView" />
-
-    <Button
         android:id="@+id/currentLocation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:background="@drawable/button1"
         android:drawableStart="@drawable/location1"
         android:drawableEnd="@drawable/baseline_arrow_forward"
@@ -100,5 +79,5 @@
         app:layout_constraintEnd_toStartOf="@+id/guideline2"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/Searchlocation" />
+        app:layout_constraintTop_toBottomOf="@+id/paymentTypeTextView" />
 </androidx.constraintlayout.widget.ConstraintLayout>
