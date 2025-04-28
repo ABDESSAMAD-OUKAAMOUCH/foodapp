@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -25,6 +26,7 @@ class OrderAdapter(
         val paymentTypeTextView: TextView = view.findViewById(R.id.paymentTypeTextView)
         val deleteIcon: ImageView = view.findViewById(R.id.imageButton2)
         val quantity: TextView = view.findViewById(R.id.number)
+        val status: TextView = view.findViewById(R.id.status)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrderViewHolder {
@@ -39,6 +41,10 @@ class OrderAdapter(
         holder.priceTextView.text = "${order.price}$"
         holder.paymentTypeTextView.text = order.paymentType
         holder.quantity.text = "${order.quantity}"
+        holder.status.text = "Status: ${order.status}"
+        if (order.status=="Delivered"){
+            holder.status.setTextColor(ContextCompat.getColor(context, R.color.green))
+        }
 
         // Decode Base64 image
         val imageBytes = Base64.decode(order.imageBase64, Base64.DEFAULT)

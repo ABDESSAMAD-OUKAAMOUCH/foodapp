@@ -66,8 +66,6 @@ class RestaurantActivity : AppCompatActivity() {
         }
         val sharedPrefs = getSharedPreferences("RestaurantPrefs", Context.MODE_PRIVATE)
         sharedPrefs.edit().putString("restaurantId", restaurantId).apply()
-
-
     }
 
     private fun fetchCategoriesWithItems(adminId: String, restaurantId: String) {
@@ -124,6 +122,4 @@ class RestaurantActivity : AppCompatActivity() {
                 Toast.makeText(this, "فشل تحميل العناصر", Toast.LENGTH_SHORT).show()
             }
     }
-
-
 }

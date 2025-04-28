@@ -9,6 +9,7 @@ data class DataOrder(
     var restaurantId: String? = null,// ← أضف هذا
     val name: String = "",
     var price: Double = 0.0,
+    var phone: String = "",
     val imageBase64: String = "",
     val paymentType: String = "",
 //    val timestamp: Timestamp? = null,

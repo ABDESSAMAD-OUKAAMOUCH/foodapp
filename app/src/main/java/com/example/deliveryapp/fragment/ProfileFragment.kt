@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import com.example.deliveryapp.R
 import com.example.deliveryapp.SignIn
 import com.example.deliveryapp.databinding.FragmentHomeBinding
@@ -74,13 +75,13 @@ class ProfileFragment : Fragment() {
                 // دخول وضع التعديل
                 isEditMode = true
                 binding.editProfile.text = "Save"
-                binding.editProfile.setBackgroundColor(R.color.Raspberry)
+                binding.editProfile.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.Raspberry))
                 binding.name.isEnabled = true
                 binding.phone.isEnabled = true
             } else {
                 // حفظ التعديلات
                 isEditMode = false
-                binding.editProfile.setBackgroundColor(R.color.stroke)
+                binding.editProfile.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.gray1))
                 binding.editProfile.text = "Edit Profile"
                 binding.name.isEnabled = false
                 binding.phone.isEnabled = false

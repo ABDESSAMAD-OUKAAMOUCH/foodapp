@@ -116,92 +116,127 @@ class Order : AppCompatActivity() {
             Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show()
             return
         }
-
-        binding.progressBar2.visibility = View.VISIBLE
-
-        // 1. First delete any placeholder orders
-        db.collection("admins")
-            .document(adminId)  // Make sure adminId is available
-            .collection("restaurants")
-            .document(restaurantId)
-            .collection("orders")
-            .whereEqualTo("placeholder", true)
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(userId)
             .get()
-            .addOnSuccessListener { snapshot ->
-                val deleteTasks = snapshot.documents.map { it.reference.delete() }
+            .addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val phone = documentSnapshot.getString("phone")
 
-                Tasks.whenAll(deleteTasks)
-                    .continueWithTask {
-                        db.collection("users").document(userId).get()
-                    }
-                    .addOnSuccessListener { userDoc ->
-                        // ===== 2. Prepare Order Data =====
-                        val orderData = hashMapOf<String, Any>(
-                            "name" to name,
-                            "price" to total,
-                            "imageBase64" to imageBase64,
-                            "paymentType" to "Cash on Delivery",
-                            "timestamp" to FieldValue.serverTimestamp(),
-                            "quantity" to quantity,
-                            "userId" to userId,
-                            "status" to "pending",
-                            "adminId" to adminId // Add adminId here
-                        )
+                    binding.progressBar2.visibility = View.VISIBLE
 
-                        try {
-                            (userDoc.get("location") as? Map<String, Any>)?.let { locationData ->
-                                val validLocation = hashMapOf<String, Any>()
-                                locationData["lat"]?.let { if (it is Double) validLocation["lat"] = it }
-                                locationData["lng"]?.let { if (it is Double) validLocation["lng"] = it }
-                                locationData["city"]?.let { if (it is String) validLocation["city"] = it }
-                                locationData["country"]?.let { if (it is String) validLocation["country"] = it }
+                    // 1. First delete any placeholder orders
+                    db.collection("admins")
+                        .document(adminId)  // Make sure adminId is available
+                        .collection("restaurants")
+                        .document(restaurantId)
+                        .collection("orders")
+                        .whereEqualTo("placeholder", true)
+                        .get()
+                        .addOnSuccessListener { snapshot ->
+                            val deleteTasks = snapshot.documents.map { it.reference.delete() }
 
-                                if (validLocation.isNotEmpty()) {
-                                    orderData["location"] = validLocation
+                            Tasks.whenAll(deleteTasks)
+                                .continueWithTask {
+                                    db.collection("users").document(userId).get()
                                 }
-                            }
-                        } catch (e: Exception) {
-                            Log.e("LocationError", "Failed to process location", e)
+                                .addOnSuccessListener { userDoc ->
+                                    // ===== 2. Prepare Order Data =====
+                                    val orderData = hashMapOf<String, Any>(
+                                        "name" to name,
+                                        "price" to total,
+                                        "imageBase64" to imageBase64,
+                                        "paymentType" to "Cash on Delivery",
+                                        "timestamp" to FieldValue.serverTimestamp(),
+                                        "quantity" to quantity,
+                                        "userId" to userId,
+                                        "status" to "pending",
+                                        "adminId" to adminId, // Add adminId here
+                                        "phone" to phone!! // Add adminId here
+                                    )
+
+                                    try {
+                                        (userDoc.get("location") as? Map<String, Any>)?.let { locationData ->
+                                            val validLocation = hashMapOf<String, Any>()
+                                            locationData["lat"]?.let {
+                                                if (it is Double) validLocation["lat"] = it
+                                            }
+                                            locationData["lng"]?.let {
+                                                if (it is Double) validLocation["lng"] = it
+                                            }
+                                            locationData["city"]?.let {
+                                                if (it is String) validLocation["city"] = it
+                                            }
+                                            locationData["country"]?.let {
+                                                if (it is String) validLocation["country"] = it
+                                            }
+
+                                            if (validLocation.isNotEmpty()) {
+                                                orderData["location"] = validLocation
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e("LocationError", "Failed to process location", e)
+                                    }
+
+                                    // ===== 3. Create orderId manually =====
+                                    val adminOrderRef = db.collection("admins")
+                                        .document(adminId)
+                                        .collection("restaurants")
+                                        .document(restaurantId)
+                                        .collection("orders")
+                                        .document() // generate ref without writing yet
+
+                                    val orderId =
+                                        adminOrderRef.id // get same orderId for both paths
+
+                                    val userOrderRef = db.collection("users")
+                                        .document(userId)
+                                        .collection("orders")
+                                        .document(orderId)
+
+                                    // ===== 4. Write to both locations =====
+                                    val writeToAdmin = adminOrderRef.set(orderData)
+                                    val writeToUser = userOrderRef.set(orderData)
+
+                                    Tasks.whenAll(writeToAdmin, writeToUser)
+                                        .addOnSuccessListener {
+                                            Toast.makeText(
+                                                this,
+                                                "Added to cart successfully",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            finish()
+                                        }
+                                        .addOnFailureListener { e ->
+                                            Toast.makeText(
+                                                this,
+                                                "Failed to save order: ${e.localizedMessage}",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(
+                                        this,
+                                        "Failed to get user data: ${e.localizedMessage}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                         }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(
+                                this,
+                                "Failed to check placeholders: ${e.localizedMessage}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        .addOnCompleteListener {
+                            binding.progressBar2.visibility = View.GONE
+                        }
+                }
 
-                        // ===== 3. Create orderId manually =====
-                        val adminOrderRef = db.collection("admins")
-                            .document(adminId)
-                            .collection("restaurants")
-                            .document(restaurantId)
-                            .collection("orders")
-                            .document() // generate ref without writing yet
-
-                        val orderId = adminOrderRef.id // get same orderId for both paths
-
-                        val userOrderRef = db.collection("users")
-                            .document(userId)
-                            .collection("orders")
-                            .document(orderId)
-
-                        // ===== 4. Write to both locations =====
-                        val writeToAdmin = adminOrderRef.set(orderData)
-                        val writeToUser = userOrderRef.set(orderData)
-
-                        Tasks.whenAll(writeToAdmin, writeToUser)
-                            .addOnSuccessListener {
-                                Toast.makeText(this, "Added to cart successfully", Toast.LENGTH_SHORT).show()
-                                finish()
-                            }
-                            .addOnFailureListener { e ->
-                                Toast.makeText(this, "Failed to save order: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                            }
-                    }
-                    .addOnFailureListener { e ->
-                        Toast.makeText(this, "Failed to get user data: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                    }
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to check placeholders: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-            }
-            .addOnCompleteListener {
-                binding.progressBar2.visibility = View.GONE
             }
     }
-
 }
