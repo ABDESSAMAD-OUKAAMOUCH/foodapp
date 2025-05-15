@@ -37,6 +37,14 @@ class RestaurantActivity : AppCompatActivity() {
         var imageBase64 = intent.getStringExtra("imageUrl")
         var restaurantUrl = intent.getStringExtra("restaurantUrl")
         var adminId = intent.getStringExtra("adminId")
+        binding.floatingactionbutton.setOnClickListener {
+            restaurantUrl?.let {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
+                startActivity(intent)
+            } ?: run {
+                Toast.makeText(this, "URL invalide", Toast.LENGTH_SHORT).show()
+            }
+        }
         val prefs = getSharedPreferences(
             "adminId",
             MODE_PRIVATE
@@ -66,6 +74,10 @@ class RestaurantActivity : AppCompatActivity() {
         }
         val sharedPrefs = getSharedPreferences("RestaurantPrefs", Context.MODE_PRIVATE)
         sharedPrefs.edit().putString("restaurantId", restaurantId).apply()
+
+        binding.imageView2.setOnClickListener {
+            finish()
+        }
     }
 
     private fun fetchCategoriesWithItems(adminId: String, restaurantId: String) {

@@ -23,6 +23,7 @@ import com.example.deliveryapp.R
 import com.example.deliveryapp.Restaurant
 import com.example.deliveryapp.RestaurantActivity
 import com.example.deliveryapp.RestaurantAdapter
+import com.example.deliveryapp.SearchActivity
 import com.example.deliveryapp.databinding.FragmentHomeBinding
 import com.google.firebase.firestore.FirebaseFirestore
 import java.net.URLEncoder
@@ -112,7 +113,6 @@ class HomeFragment : Fragment() {
                 }
 
                 startActivity(intent)
-                startActivity(intent)
             }
         })
         binding.recyclerView1.layoutManager= LinearLayoutManager(activity, RecyclerView.VERTICAL,false)
@@ -177,6 +177,14 @@ class HomeFragment : Fragment() {
         binding.recyclerView1.setOnClickListener {
 
             startActivity(Intent(requireContext(), Order::class.java))
+        }
+
+        binding.searchlocation.setOnQueryTextFocusChangeListener { view, hasFocus ->
+            if (hasFocus) {
+                val intent = Intent(requireContext(), SearchActivity::class.java)
+                startActivity(intent)
+                view.clearFocus() // لإزالة التركيز بعد الانتقال
+            }
         }
 
 

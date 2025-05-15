@@ -21,12 +21,10 @@ class RestaurantAdapter(
 
     inner class RestaurantViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val restaurantName: TextView = itemView.findViewById(R.id.nameRestaurant)
-        val restaurantUrl: TextView = itemView.findViewById(R.id.time)
         val restaurantImage: ImageView = itemView.findViewById(R.id.restaurantImage)
 
         fun bind(restaurant: Restaurant) {
             restaurantName.text = restaurant.restaurantName
-            restaurantUrl.text = restaurant.restaurantUrl
 
             Glide.with(context)
                 .load(restaurant.imageBase64)

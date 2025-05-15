@@ -58,6 +58,7 @@ class ProfileFragment : Fragment() {
                         binding.email.setText(email)
                         binding.phone.setText(phone)
                         binding.city.setText(city) // عرض اسم المدينة مثلاً
+                        binding.p.text = email?.takeIf { it.isNotEmpty() }?.substring(0, 1) ?: "?"
                     }
                 }
                 .addOnFailureListener {
@@ -98,6 +99,7 @@ class ProfileFragment : Fragment() {
                     "phone" to newPhone  // إذا كنت تحفظ رقم الهاتف داخل location، أو غير المفتاح حسب مكانه
                 )
 
+
                 val userId = FirebaseAuth.getInstance().currentUser?.uid
                 if (userId != null) {
                     db.collection("users").document(userId)
@@ -109,8 +111,6 @@ class ProfileFragment : Fragment() {
                             Toast.makeText(requireContext(), "فشل التحديث", Toast.LENGTH_SHORT).show()
                         }
                 }
-
-
             }
         }
         binding.logout.setOnClickListener {
@@ -118,13 +118,8 @@ class ProfileFragment : Fragment() {
 
             // اذهب إلى شاشة تسجيل الدخول أو البداية
             val intent = Intent(requireContext(), SignIn::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
-
-
-
-
-
     }
 }
